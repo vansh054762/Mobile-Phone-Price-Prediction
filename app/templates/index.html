@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📱 Mobile Price Predictor</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <meta name="color-scheme" content="light"/>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── Header ── -->
+  <header>
+    <h1>📱 Mobile Phone Price Predictor</h1>
+    <p class="subtitle">{{ total_phones }} real Indian smartphones · Gradient Boosting · 4 price tiers</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── Form Panel ── -->
+    <aside class="form-panel">
+      <h2>⚙️ Phone Specifications</h2>
+
+      <div class="form-group">
+        <label>🏷️ Brand</label>
+        <select id="brand">
+          {% for b in brands %}
+          <option value="{{ b }}" {% if b == "Samsung" %}selected{% endif %}>{{ b }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="section-title">💾 Memory</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>RAM (GB)</label>
+          <select id="ram_gb">
+            <option>2</option><option>3</option><option>4</option>
+            <option value="6" selected>6</option><option>8</option>
+            <option>12</option><option>16</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Storage (GB)</label>
+          <select id="storage_gb">
+            <option>32</option><option>64</option>
+            <option value="128" selected>128</option>
+            <option>256</option><option>512</option><option>1000</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">🔋 Battery & Display</div>
+      <div class="form-group">
+        <label>Battery (mAh) — <span id="battery_val">5000</span></label>
+        <input type="range" id="battery_mah" min="2000" max="9000" step="100" value="5000"
+               oninput="document.getElementById('battery_val').textContent=this.value"/>
+      </div>
+      <div class="form-group">
+        <label>Screen Size (inches) — <span id="screen_val">6.5</span>"</label>
+        <input type="range" id="screen_size_in" min="4.5" max="7.5" step="0.1" value="6.5"
+               oninput="document.getElementById('screen_val').textContent=parseFloat(this.value).toFixed(1)"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Refresh Rate (Hz)</label>
+          <select id="refresh_rate">
+            <option>60</option><option>90</option>
+            <option value="120" selected>120</option>
+            <option>144</option><option>165</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Resolution</label>
+          <select id="resolution">
+            <option value="720x1600">HD+ (720×1600)</option>
+            <option value="1080x2400" selected>FHD+ (1080×2400)</option>
+            <option value="1440x3200">QHD+ (1440×3200)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">📸 Camera & Processor</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rear Camera (MP)</label>
+          <select id="camera_mp">
+            <option>8</option><option>12</option><option>13</option>
+            <option>16</option><option>48</option>
+            <option value="50" selected>50</option>
+            <option>64</option><option>108</option><option>200</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Front Camera (MP)</label>
+          <select id="front_camera_mp">
+            <option>5</option><option>8</option><option>10</option>
+            <option>12</option><option>13</option>
+            <option value="16" selected>16</option>
+            <option>20</option><option>32</option><option>44</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Processor Speed (GHz) — <span id="cpu_val">2.40</span></label>
+        <input type="range" id="processor_ghz" min="1.5" max="3.5" step="0.05" value="2.4"
+               oninput="document.getElementById('cpu_val').textContent=parseFloat(this.value).toFixed(2)"/>
+      </div>
+
+      <div class="section-title">📡 Connectivity</div>
+      <div class="toggles-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="five_g" checked/>
+          <span class="toggle"></span> 5G
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="nfc" checked/>
+          <span class="toggle"></span> NFC
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="ir_blaster"/>
+          <span class="toggle"></span> IR Blaster
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="ext_card" checked/>
+          <span class="toggle"></span> MicroSD
+        </label>
+      </div>
+
+      <div class="form-group" style="margin-top:14px">
+        <label>Expected Rating — <span id="rating_val">80</span>/100</label>
+        <input type="range" id="rating" min="60" max="100" step="1" value="80"
+               oninput="document.getElementById('rating_val').textContent=this.value"/>
+      </div>
+
+      <button class="predict-btn" onclick="predict()">🔍 Predict Price Range</button>
+    </aside>
+
+    <!-- ── Results Panel ── -->
+    <main class="results-panel" id="results" style="display:none">
+
+      <!-- Prediction Card -->
+      <div class="result-card" id="result-card">
+        <div class="result-emoji" id="result-emoji"></div>
+        <div class="result-tier" id="result-tier"></div>
+        <div class="result-range" id="result-range"></div>
+        <div class="result-model" id="result-model"></div>
+      </div>
+
+      <!-- Confidence bars -->
+      <div class="confidence-box">
+        <h3>📊 Prediction Confidence</h3>
+        <div id="confidence-bars"></div>
+      </div>
+
+      <!-- Similar phones -->
+      <div class="similar-box">
+        <h3>📱 Real Phones With Similar Specs</h3>
+        <p class="similar-sub">Top 5 closest matches from the dataset</p>
+        <div id="similar-phones"></div>
+      </div>
+
+    </main>
+
+    <!-- Placeholder before predict -->
+    <main class="results-panel placeholder-panel" id="placeholder">
+      <div class="placeholder-inner">
+        <div style="font-size:4rem">📱</div>
+        <h2>Set specs & click Predict</h2>
+        <p>We'll predict the price tier and show real phones with similar specs.</p>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
